@@ -1,3 +1,6 @@
+/ip firewall address-list
+add address=192.168.17.0/24 list=Private-Lokal
+
 /ip firewall mangle
 add action=mark-routing chain=output dst-address=9.9.9.9 new-routing-mark=\
     Cek-Line1 passthrough=no disabled=yes
