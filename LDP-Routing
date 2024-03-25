@@ -34,8 +34,12 @@ add action=add-dst-to-address-list address-list=fbcdn address-list-timeout=1d \
 /tool netwatch
 add comment="Failover Line1" down-script=\
     "ip route disable [find comment=Line1-Route]" host=9.9.9.9 interval=15s \
-    up-script="ip route enable [find comment=LDP-Route]"
+    up-script="ip route enable [find comment=Line1]"
 add comment="Failover Route-Line2" down-script=\
     "ip firewall mangle disable [find comment=Route-Line2]" host=1.1.1.1 \
     interval=15s up-script=\
     "ip firewall mangle enable [find comment=Route-Line2]"
+
+######
+/ip route set [find comment="Line1"] disable=yes <- On Down
+/ip route set [find comment="Line1"] disable=no <- On Up
