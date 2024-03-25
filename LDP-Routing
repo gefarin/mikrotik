@@ -1,0 +1,41 @@
+/ip firewall mangle
+add action=mark-routing chain=output dst-address=9.9.9.9 new-routing-mark=\
+    Cek-Line1 passthrough=no disabled=yes
+add action=mark-routing chain=output dst-address=1.1.1.1 new-routing-mark=\
+    Cek-Line2 passthrough=no disabled=yes
+add action=mark-routing chain=prerouting comment=Route-Line2 dst-address-list=TikTok \
+    new-routing-mark=Route-Line2 passthrough=no src-address-list=Private-Lokal disabled=yes
+add action=mark-routing chain=prerouting comment=Route-Line2 dst-address-list=YouTube \
+    new-routing-mark=Route-Line2 passthrough=no src-address-list=Private-Lokal disabled=yes
+
+/ip firewall raw
+add action=add-dst-to-address-list address-list=TikTok address-list-timeout=\
+    1d chain=prerouting comment=TikTok content=.tiktok.com dst-address-list=\
+    !Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=TikTok address-list-timeout=\
+    1d chain=prerouting content=.tiktokcdn.com dst-address-list=\
+    !Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=TikTok address-list-timeout=\
+    1d chain=prerouting content=.tiktokv.com dst-address-list=!Private-Lokal \
+    src-address-list=Private-Lokal
+    !Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=YouTube address-list-timeout=\
+    1d chain=prerouting comment=YouTube content=.googlevideo.com \
+    dst-address-list=!Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=YouTube address-list-timeout=\
+    1d chain=prerouting content=.youtube.com dst-address-list=\
+    !Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=YouTube address-list-timeout=\
+    1d chain=prerouting content=.ytimg.com dst-address-list=\
+    !Private-Lokal src-address-list=Private-Lokal
+add action=add-dst-to-address-list address-list=fbcdn address-list-timeout=1d \
+    chain=prerouting comment=fbcdn content=.fbcdn.net dst-address-list=\
+
+/tool netwatch
+add comment="Failover Line1" down-script=\
+    "ip route disable [find comment=Line1-Route]" host=9.9.9.9 interval=15s \
+    up-script="ip route enable [find comment=LDP-Route]"
+add comment="Failover Route-Line2" down-script=\
+    "ip firewall mangle disable [find comment=Route-Line2]" host=1.1.1.1 \
+    interval=15s up-script=\
+    "ip firewall mangle enable [find comment=Route-Line2]"
